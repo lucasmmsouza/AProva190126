@@ -1,66 +1,62 @@
 package com.example.prova190126.ui;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.example.prova190126.R;
+import com.example.prova190126.data.Personagem;
+import java.util.List;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link DadosFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class DadosFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private DadosViewModel viewModel;
+    private PersonagemAdapter adapter;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    public View onCreateView(@NonNull LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
+        View root = inflater.inflate(R.layout.fragment_dados, container, false);
 
-    public DadosFragment() {
-        // Required empty public constructor
-    }
+        viewModel = new ViewModelProvider(this).get(DadosViewModel.class);
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment DadosFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static DadosFragment newInstance(String param1, String param2) {
-        DadosFragment fragment = new DadosFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
+        RecyclerView recyclerView = root.findViewById(R.id.recyclerDados);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        adapter = new PersonagemAdapter();
+        recyclerView.setAdapter(adapter);
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
-    }
+        viewModel.baixarDados();
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_dados, container, false);
+
+        viewModel.getListaPersonagens().observe(getViewLifecycleOwner(), new Observer<List<Personagem>>() {
+            @Override
+            public void onChanged(List<Personagem> personagems) {
+                if (personagems != null) {
+                    adapter.setLista(personagems);
+                }
+            }
+        });
+
+        viewModel.getMensagemSucesso().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                Toast.makeText(getContext(), s, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        viewModel.getMensagemErro().observe(getViewLifecycleOwner(), new Observer<String>() {
+            @Override
+            public void onChanged(String s) {
+                Toast.makeText(getContext(), s, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        return root;
     }
 }
